@@ -74,7 +74,7 @@ app_host_scheme = http
 app_host_domain = application.com 
 
 # App port
-app_port = 80
+app_host_port = 80
 
 # App environment: development, staging or production
 app_environment = development
