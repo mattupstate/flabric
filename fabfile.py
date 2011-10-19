@@ -1,6 +1,7 @@
 from __future__ import with_statement
 import boto
 import datetime
+import fileinput
 import os 
 import time
 from fabric.api import *
@@ -42,6 +43,7 @@ env.app_cache_memecached_servers = env.app_cache_memecached_servers.split(",")
 
 
 # tasks
+        
 def create_server():
     """
     Create an EC2 instance and install necessary packages and software
@@ -54,15 +56,16 @@ def create_server():
     _oven()
     end_time = time.time()
     print(green("Runtime: %f minutes" % ((end_time - start_time) / 60)))
-    print(green("Instance created. Deploying to: %s" % env.host_string))
+    print(green(_render("Instance created. Change the value of host_string your rcfile to %(host_string)s")))
     deploy()
-    print(green("All done! Edit the host_string value in your rcfile to match: %s" % env.host_string))
+    print(green("All done! Edit the host_string value in your rcfile to match: %s" % env.host_string), True)
 
 
 def clean():
     """
     Remove all temporary build files
     """
+    print(green("Removing temporary build files"))
     if os.path.isdir(_render('%(build_dir)s')):
         _local('rm -R %(build_dir)s')
         
@@ -70,18 +73,22 @@ def test():
     """
     Run the test suite and bail out if it fails
     """
+    print(green("Running application tests", True))
     with settings(warn_only=True):
         with cd(_render("%(lcwd)s")):
             result = _local("nosetests --with-xunit")
             if result.failed and not confirm("Tests failed. Continue anyway?"):
-                abort("Tests failed. Will not continue.")
+                abort(red("Tests failed. Will not continue."))
 
 def build():
     """
     Run the build process
     """
     clean()
+    print(green("Starting build process", True))
     env.app_release = _local('cd %(lcwd)s; git rev-parse %(app_scm_branch)s | cut -c 1-9', capture=True)
+    env.build_dir = _render("%(build_dir)s/%(app_release)s")
+    print(green(_render("Release hash: %s(app_release)s")))
     _local('mkdir -p %(build_dir)s')
     bundle_code()
     generate_configuration()
@@ -90,6 +97,9 @@ def bundle_code():
     """
     Create an archive from the target branch for the current host(s)
     """
+    print(green(_render("Bundling code"), True))
+    print(green(_render("Repository: %(app_scm_url)s")))
+    print(green(_render("Branch: %(app_scm_branch)s")))
     env.app_bundle_tar = _render('%(build_dir)s/%(app_release)s.tar')
     _local('git archive --format=tar %(app_scm_branch)s > %(app_bundle_tar)s')
     
@@ -97,6 +107,7 @@ def generate_configuration():
     """
     Generate configuration files from the environment
     """
+    print(green(_render("Generating configuration"), True))
     _local('mkdir -p %(build_dir)s/etc')
     open(_render('%(build_dir)s/etc/config.py'), 'w').write(_render(open(_render('%(lcwd)s/etc/config.py.tmpl'), 'r').read()))
     open(_render('%(build_dir)s/etc/nginx.conf'), 'w').write(_render(open(_render('%(lcwd)s/etc/nginx.conf.tmpl'), 'r').read()))
@@ -106,6 +117,7 @@ def generate_local_config():
     """
     Generate a local configuration for running the application using the builtin webserver
     """
+    print(green(_render("Generating local configuration"), True))
     _local('if [ -e %(lcwd)s/instance/config.py ];then rm %(lcwd)s/instance/config.py; fi;')
     output = _render(open(_render('%(lcwd)s/etc/config.py.tmpl'), 'r').read())
     open(_render('%(lcwd)s/instance/config.py'), 'w').write(output)
@@ -116,6 +128,7 @@ def upload_release():
     """
     Upload and extract the release into a release folder
     """
+    print(green(_render("Uploading release"), True))
     require('app_release', provided_by=[build])
     require('app_bundle_tar', provided_by=[bundle_code])
     env.app_release_dir = _render('%(app_releases_dir)s/%(app_release)s')
@@ -123,6 +136,7 @@ def upload_release():
     _sudo('if [ -d %(app_release_dir)s ];then rm -r %(app_release_dir)s; fi;')
     _put({"file": "%(app_bundle_tar)s", "destination": "%(app_release_tar)s"})
     _run('mkdir %(app_release_dir)s')
+    print(green(_render("Extracting release"), True))
     _run('cd %(app_release_dir)s; tar -xvf %(app_release_tar)s')
     _run('rm %(app_release_tar)s')
 
@@ -130,19 +144,22 @@ def upload_configuration():
     """
     Upload generated configuration files
     """
+    print(green(_render("Uploading configuration files"), True))
     etc_files = os.listdir(_render('%(build_dir)s/etc'))
     for file in etc_files:
         _put({"file":'%s/build/etc/%s' % (env.lcwd, file), "destination":'%s/%s' % (env.app_instance_dir, file)})
 
 def update_virtualenv():
+    print(green(_render("Updating virtualenv requirments"), True))
     _run("if [ ! -d %(app_virtualenv)s ];then mkvirtualenv %(app_id)s; fi;")
     with cd(_render("%(app_dir)s")):
         _run("workon %(app_id)s && pip install -r %(app_current_release)s/requirements.txt")
 
 def link_release():
     """
-    Update the current release
+    Update the current release symlinks
     """
+    print(green(_render("Updating current and previous release symlinks"), True))
     _run('if [ -e %(app_previous_release)s ];then rm %(app_previous_release)s; fi;')
     _run('if [ -e %(app_current_release)s ];then mv %(app_current_release)s %(app_previous_release)s; fi;')
     _run('ln -s %(app_release_dir)s %(app_current_release)s')  
@@ -151,6 +168,7 @@ def check_dirs():
     """
     Create application specific directories
     """
+    print(green(_render("Checking required directories are in place"), True))
     _mkdir(env.app_dir)
     _mkdir(env.app_releases_dir)
     _mkdir(env.app_config_dir)
@@ -164,6 +182,7 @@ def check_symlinks():
     """
     Check to make sure all symbolic links are in place
     """
+    print(green(_render("Checking required symlinks are in place"), True))
     env.server_nginx_conf = _render("%(server_nginx_config_dir)s/sites-enabled/%(app_id)s")
     _sudo("if [ ! -e %(server_nginx_conf)s ];then ln -s %(app_instance_dir)s/nginx.conf %(server_nginx_conf)s; fi;")
     env.server_uwsgi_conf = _render("%(server_uwsgi_config_dir)s/apps-enabled/%(app_id)s")
@@ -173,6 +192,7 @@ def deploy():
     """
     Deploy the application
     """
+    print(green(_render("Deploying application to %(host_string)s"), True))
     test()
     build()
     check_dirs()
@@ -190,7 +210,7 @@ def create_instance():
     """
     Creates an EC2 Instance
     """
-    print(yellow("Creating instance"))
+    print(yellow("Creating EC2 instance"))
     conn = boto.connect_ec2(env.ec2_key, env.ec2_secret)
     image = conn.get_all_images(env.ec2_amis.split(","))
     
@@ -331,3 +351,4 @@ def _mkdir(dir):
     Create a directory if it doesn't exist
     """
     run('if [ ! -d %s ]; then mkdir -p %s; fi;' % (dir, dir))
+    

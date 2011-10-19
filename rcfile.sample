@@ -54,6 +54,7 @@ server_uwsgi_config_dir = /etc/uwsgi
 # Path to nginx config directory
 server_nginx_config_dir = /etc/nginx
 
+
 # ---------------------------
 # Application specific values
 # ---------------------------
