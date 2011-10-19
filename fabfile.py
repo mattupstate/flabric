@@ -143,7 +143,7 @@ def link_release():
     """
     _run('if [ -e %(app_previous_release)s ];then rm %(app_previous_release)s; fi;')
     _run('if [ -e %(app_current_release)s ];then mv %(app_current_release)s %(app_previous_release)s; fi;')
-    _run('ln -s %(app_release_dir)s %(app_current_release)s'  
+    _run('ln -s %(app_release_dir)s %(app_current_release)s')  
     
 def check_dirs():
     """
