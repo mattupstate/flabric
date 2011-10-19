@@ -58,7 +58,7 @@ def create_server():
     print(green("Runtime: %f minutes" % ((end_time - start_time) / 60)))
     print(green(_render("Instance created. Change the value of host_string your rcfile to %(host_string)s")))
     deploy()
-    print(green("All done! Edit the host_string value in your rcfile to match: %s" % env.host_string), True)
+    print("All done! Edit the host_string value in your rcfile to match: %s" % env.host_string)
 
 
 def clean():
@@ -147,7 +147,7 @@ def upload_configuration():
     print(green(_render("Uploading configuration files"), True))
     etc_files = os.listdir(_render('%(build_dir)s/etc'))
     for file in etc_files:
-        _put({"file":'%s/build/etc/%s' % (env.lcwd, file), "destination":'%s/%s' % (env.app_instance_dir, file)})
+        _put({"file":'%s/etc/%s' % (env.build_dir, file), "destination":'%s/%s' % (env.app_instance_dir, file)})
 
 def update_virtualenv():
     print(green(_render("Updating virtualenv requirments"), True))
