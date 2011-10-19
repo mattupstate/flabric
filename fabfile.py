@@ -54,7 +54,9 @@ def create_server():
     _oven()
     end_time = time.time()
     print(green("Runtime: %f minutes" % ((end_time - start_time) / 60)))
-    print(green("You can now deploy to: %s" % env.host_string))
+    print(green("Instance created. Deploying to: %s" % env.host_string))
+    deploy()
+    print(green("All done! Edit the host_string value in your rcfile to match: %s" % env.host_string))
 
 
 def clean():
