@@ -1,0 +1,11 @@
+uwsgi:
+  master: 1
+  uid: root
+  socket: %(app_run_dir)s/uwsgi.sock
+  pidfile: %(app_run_dir)s/uwsgi.pid
+  daemonize: %(app_log_dir)s/uwsgi.log
+  home: %(app_virtualenv)s
+  pythonpath: %(app_current_release)s
+  wsgi-file: %(app_current_release)s/main.py
+  module: %(app_uwsgi_module)s
+  callable: %(app_uwsgi_callable)s

@@ -1,0 +1,13 @@
+.DS_Store
+.pydevproject
+.project
+.settings
+*.pyc
+build
+cache
+log
+instance/*
+!instance/__init__.py
+rcfile.*
+!rcfile.sample
+nosetests.xml

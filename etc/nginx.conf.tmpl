@@ -1,0 +1,16 @@
+server {
+    listen       80;
+    server_name  localhost;
+    
+    access_log  %(app_log_dir)s/access.log;
+    error_log %(app_log_dir)s/error.log;
+    
+    location / {
+        include uwsgi_params;
+        uwsgi_pass unix:%(app_run_dir)s/uwsgi.sock;
+    }
+    
+    location /media {
+        alias %(app_shared_dir)s/media;
+    }
+}
