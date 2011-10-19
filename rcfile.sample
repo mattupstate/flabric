@@ -111,7 +111,7 @@ app_cache_type = filesystem
 app_cache_dir = cache
 
 # A comma delimited list of memcache servers or None
-app_cache_memecached_servers = None
+app_cache_memcached_servers = None
 
 # uWSGI module
 app_uwsgi_module = application

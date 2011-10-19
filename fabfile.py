@@ -39,7 +39,7 @@ env.app_instance_dir = "%(app_current_release)s/instance" % env
 
 # Split strings into lists
 env.app_admin_emails = env.app_admin_emails.split(",")
-env.app_cache_memecached_servers = env.app_cache_memecached_servers.split(",")
+env.app_cache_memcached_servers = env.app_cache_memcached_servers.split(",")
 
 
 # tasks
