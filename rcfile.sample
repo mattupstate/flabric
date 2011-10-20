@@ -87,7 +87,7 @@ app_debug = True or False
 app_secret_key = secret_key_phrase
 
 # Comma separate list of admin emails
-app_admin_emails = matt@localprojects.net,you@somehwere.com
+app_admin_emails = you@somwhere.com
 
 # Log file name
 app_log_file_name = main.log
@@ -96,7 +96,7 @@ app_log_file_name = main.log
 app_log_file_level = WARN
 
 # Log email sender
-app_log_email_sender = errors@civildebatewall.com
+app_log_email_sender = errors@application.com
 
 # Log email server
 app_log_email_server = 127.0.0.1
