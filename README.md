@@ -8,6 +8,7 @@ Clone the project and install the requirments using pip (hopefully you use pip)
 
     $ git clone git@github.com:mattupstate/flabric.git
     $ cd flabric
+    $ mkvirtualenv flabric
     $ pip install -r requirements.txt
 
 Copy `rcfile.sample` and name it `rcfile.development` (or staging, or production). Then edit the following values in `rcfile.development`:
