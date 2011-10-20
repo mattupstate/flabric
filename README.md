@@ -32,6 +32,13 @@ If you're rcfile is configured correctly you can now sit back and relax while Fa
 * [uwsgi-manager](https://github.com/mattupstate/uWSGI-Manager)
 * [git](http://git-scm.com/)
     
-It will then deploy the application to the server immediately. Once this is complete, you'll want to edit `rcfile.development` again and set the `host_string` value to the host name of the EC2 instance that was created. That way, whenever you're ready to deploy a new version you can simply run:
+It will then deploy the application to the server immediately. Once this is complete, you'll want to edit `rcfile.development` again and set the following values:
+
+    key_filename # Path to keypair.pem
+    host_string # The host name of the instance that was launched
+
+Now you're ready to deploy a new version after you commit some code to the git repository. To redeploy run:
 
     $ fab -c rcfile.development deploy
+
+Explore the fabfile for more tasks that allow you to manage nginx and the uwsgi process manager
