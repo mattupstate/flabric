@@ -1,11 +1,15 @@
 # Flabric
 
 ### Getting Started
+
 Install Flabric:
 
     $ pip install https://github.com/mattupstate/flabric/tarball/develop
 
-Configure an rcfile with the following values (for EC2):
+
+Configure an rcfile with the following values:
+
+EC2:
 
     user = ubuntu
     key_filename = /path/to/keyfile
@@ -20,6 +24,21 @@ Configure an rcfile with the following values (for EC2):
     ec2_keypair = keypair_name
     ec2_secgroups = security_group_name
     ec2_instancetype = t1.micro
+
+Rackspace:
+
+    user = root
+    password = your_custom_password
+    #host_string = to be added later
+
+    server_provider = rackspace
+    server_type = flabric.ubuntu.nginx_uwsgi_supervisor
+
+    rackspace_username = your_username
+    rackspace_apikey = your_api_key
+    rackspace_servername = your_server_name
+    rackspace_image = 112
+    rackspace_flavor = 1
 
 Add the following to your fabfile:
 
