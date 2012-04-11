@@ -9,7 +9,11 @@ class Provider(object):
 class ec2(Provider):
     def create_instance(self):
         """Creates an EC2 Instance"""
-        import boto
+        try:
+            import boto
+        except ImportError:
+            raise Exception("Could not import boto module. "
+                            "Try installing by running: pip install boto")
 
         print(yellow("Creating EC2 instance"))
 
@@ -39,8 +43,12 @@ class ec2(Provider):
 
 class rackspace(Provider):
     def create_instance(self):
-        from cloudservers import CloudServers
-        from cloudservers.exceptions import NotFound
+        try:
+            from cloudservers import CloudServers
+            from cloudservers.exceptions import NotFound
+        except ImportError:
+            raise Exception("Could not import cloudservers module. "
+                            "Try installing by running: pip install python-cloudservers")
 
         cs = CloudServers(env.rackspace_username, env.rackspace_apikey)
         image = cs.images.find(id=int(env.rackspace_image))
@@ -67,7 +75,6 @@ class rackspace(Provider):
         server.update(password=env.password)
         public_ip = server.addresses['public'][0]
 
-        print server.addresses
         print(green("Instance state: %s" % server.status))
         print(green("Public IP: %s" % public_ip))
 
