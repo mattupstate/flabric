@@ -1,5 +1,7 @@
 # Flabric
 
+Flabric allows you to easily create and configure servers for Python projects on Amazon EC2 or Rackspace Cloud Servers.
+
 ### Getting Started
 
 Install Flabric:
@@ -54,7 +56,7 @@ Create the server:
 
     $ fab -c rcfile create_server
 
-If something doesn't go right during server setup, such as a network error you can try it again by running:
+If you've already created your server through your respective management console, or if something fails during server setup, you can run setup by setting the value for `host_string` in your rcfile running to your server's public DNS or IP address and running:
 
     $ fab -c rcfile setup_server
 

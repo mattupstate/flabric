@@ -2,7 +2,8 @@
 Flabric
 --------------
 
-Simple sysadmin using Fabric and Cuisine
+Flabric allows you to easily create and configure servers for Python projects
+on Amazon EC2 or Rackspace Cloud Servers
 
 
 Links
@@ -54,7 +55,7 @@ setup(
     license='MIT',
     author='Matthew Wright',
     author_email='matt@nobien.net',
-    description='Simple sysadmin using Fabric and Cuisine',
+    description='Simple server creation and configuration on EC2 and Rackspace',
     long_description=__doc__,
     packages=packages,
     data_files=data_files,
