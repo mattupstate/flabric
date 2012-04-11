@@ -35,7 +35,7 @@ class ec2(Provider):
         print(green("Instance state: %s" % instance.state))
         print(green("Public dns: %s" % instance.public_dns_name))
         
-        return instance.public_dns_name, None
+        return instance.public_dns_name
 
 class rackspace(Provider):
     def create_instance(self):
@@ -64,11 +64,11 @@ class rackspace(Provider):
                 continue
             break
 
-        server.update(password=env.rackspace_serverpwd)
+        server.update(password=env.password)
         public_ip = server.addresses['public'][0]
 
         print server.addresses
         print(green("Instance state: %s" % server.status))
         print(green("Public IP: %s" % public_ip))
 
-        return public_ip, env.rackspace_serverpwd
+        return public_ip
