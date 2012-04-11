@@ -44,7 +44,7 @@ class nginx_uwsgi_supervisor(ubuntu_server):
                       'python-mysqldb', 
                       'python-pip',
                       'mysql-client', 
-                      'git', 
+                      'git-core', 
                       'nginx']:
                 puts(green('Installing: %s' % p))
                 package_ensure(p)
@@ -109,4 +109,3 @@ class nginx_uwsgi_supervisor(ubuntu_server):
         puts(green('Stoping server'))
         for c in ['nginx', 'supervisor']:
             sudo('/etc/init.d/%s stop' % c)
-
