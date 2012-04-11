@@ -4,16 +4,19 @@ from fabric.api import *
 from fabric.colors import *
 
 class Server(object):
-    def setup():
+    def reboot(self):
         raise NotImplementedError()
 
-    def restart():
+    def setup(self):
         raise NotImplementedError()
 
-    def start():
+    def restart(self):
         raise NotImplementedError()
 
-    def stop():
+    def start(self):
+        raise NotImplementedError()
+
+    def stop(self):
         raise NotImplementedError()
 
 def _getattr(objstr):
@@ -42,7 +45,7 @@ def render(self, obj):
         return rv
 
 def create_server():
-    """Create an server instance and set it up"""
+    """Create a server instance and set it up"""
     start_time = time.time()
     print(green("Creating new server..."))
     provider = _getattr('flabric.providers.%s' % env.server_provider)()
