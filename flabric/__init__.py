@@ -27,6 +27,9 @@ def _getattr(objstr):
         m = getattr(m, comp)
     return m
 
+def _get_server():
+    return _getattr(env.server_type)()
+
 def render(self, obj):
         """Convienently render strings with the fabric context"""
         def get_v(v):
@@ -62,5 +65,20 @@ def create_server():
 
 def setup_server():
     """Setup the sever"""
-    server = _getattr(env.server_type)()
-    server.setup()
+    _get_server().setup()
+
+def reboot_server():
+    """Reboot the sever"""
+    _get_server().reboot()
+
+def restart_server():
+    """Restart the sever"""
+    _get_server().restart()
+
+def start_server():
+    """Start the sever"""
+    _get_server().start()
+
+def stop_server():
+    """Stop the sever"""
+    _get_server().stop()
