@@ -52,7 +52,7 @@ def create_server():
     start_time = time.time()
     print(green("Creating new server..."))
     provider = _getattr('flabric.providers.%s' % env.server_provider)()
-    env.host_string = provider.create_instance()
+    env.host_string, env.password = provider.create_instance()
     print(green("Waiting 30 seconds for server to boot..."))
     time.sleep(30)
     setup_server()

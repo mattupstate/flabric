@@ -1,4 +1,4 @@
-import boto, time
+import time
 from fabric.api import env
 from fabric.colors import *
 
@@ -9,6 +9,7 @@ class Provider(object):
 class ec2(Provider):
     def create_instance(self):
         """Creates an EC2 Instance"""
+        import boto
 
         print(yellow("Creating EC2 instance"))
 
@@ -34,4 +35,40 @@ class ec2(Provider):
         print(green("Instance state: %s" % instance.state))
         print(green("Public dns: %s" % instance.public_dns_name))
         
-        return instance.public_dns_name
+        return instance.public_dns_name, None
+
+class rackspace(Provider):
+    def create_instance(self):
+        from cloudservers import CloudServers
+        from cloudservers.exceptions import NotFound
+
+        cs = CloudServers(env.rackspace_username, env.rackspace_apikey)
+        image = cs.images.find(id=int(env.rackspace_image))
+        flavor = cs.flavors.find(id=int(env.rackspace_flavor))
+        server = cs.servers.create(env.rackspace_servername, image=image, flavor=flavor)
+        server_id = server.id
+
+        while True:
+            while True:
+                try:
+                    server = cs.servers.find(id=server_id)
+                    break;
+                except NotFound:
+                    print(yellow('Server not found yet'))
+                    time.sleep(10)
+                    pass
+
+            if server.status != 'ACTIVE':
+                print(yellow("Server status: %s" % server.status))
+                time.sleep(20)
+                continue
+            break
+
+        server.update(password=env.rackspace_serverpwd)
+        public_ip = server.addresses['public'][0]
+
+        print server.addresses
+        print(green("Instance state: %s" % server.status))
+        print(green("Public IP: %s" % public_ip))
+
+        return public_ip, env.rackspace_serverpwd

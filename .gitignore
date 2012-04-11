@@ -1,13 +1,5 @@
-.DS_Store
-.pydevproject
-.project
-.settings
 *.pyc
+.DS_Store
+fabfile.py
 build
-cache
-log
-instance/*
-!instance/__init__.py
 rcfile.*
-!rcfile.sample
-nosetests.xml
