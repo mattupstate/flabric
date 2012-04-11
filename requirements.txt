@@ -1,5 +1,0 @@
-Fabric==1.2.0
-Flask==0.8
-Flask-Cache==0.3.4
-boto==2.0
-nose==1.1.2
