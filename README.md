@@ -2,16 +2,21 @@
 
 Flabric allows you to easily create and configure servers for Python projects on Amazon EC2 or Rackspace Cloud Servers.
 
-### Getting Started
+## Getting Started
+
+### Installation
 
 Install Flabric:
 
     $ pip install https://github.com/mattupstate/flabric/tarball/develop
 
+#### EC2:
+
+Install boto:
+
+    $ pip install boto
 
 Configure an rcfile with the following values:
-
-EC2:
 
     user = ubuntu
     key_filename = /path/to/keyfile
@@ -27,7 +32,13 @@ EC2:
     ec2_secgroups = security_group_name
     ec2_instancetype = t1.micro
 
-Rackspace:
+#### Rackspace:
+
+Install python-cloudservers:
+
+    $ pip install python-cloudservers
+
+Configure an rcfile with the following values:
 
     user = root
     password = your_custom_password
@@ -41,6 +52,8 @@ Rackspace:
     rackspace_servername = your_server_name
     rackspace_image = 112
     rackspace_flavor = 1
+
+### Create a Server
 
 Add the following to your fabfile:
 
