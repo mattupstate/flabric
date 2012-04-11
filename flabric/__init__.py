@@ -3,6 +3,7 @@ import time, types
 from fabric.api import *
 from fabric.colors import *
 
+
 class Server(object):
     def reboot(self):
         raise NotImplementedError()
@@ -19,6 +20,24 @@ class Server(object):
     def stop(self):
         raise NotImplementedError()
 
+
+class Application(object):
+    def bundle(self):
+        raise NotImplementedError()
+
+    def deploy(self):
+        raise NotImplementedError()
+        
+    def restart(self):
+        raise NotImplementedError()
+
+    def start(self):
+        raise NotImplementedError()
+
+    def stop(self):
+        raise NotImplementedError()
+
+
 def _getattr(objstr):
     parts = objstr.split('.')
     module = ".".join(parts[:-1])
@@ -30,7 +49,7 @@ def _getattr(objstr):
 def _get_server():
     return _getattr(env.server_type)()
 
-def render(self, obj):
+def render(obj):
         """Convienently render strings with the fabric context"""
         def get_v(v):
             return v % env if isinstance(v, basestring) else v
