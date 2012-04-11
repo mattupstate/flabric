@@ -62,7 +62,6 @@ setup(
     include_package_data=True,
     platforms='any',
     install_requires=[
-        'fabric',
         'cuisine'
     ],
     classifiers=[

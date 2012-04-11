@@ -1,45 +1,42 @@
 # Flabric
-Flabric is a so-called skeleton/template project for a [Flask](http://flask.pocoo.org) application and ships with a [Fabric](http://www.fabfile.org) deployment system for Amazon EC2. It is directly inspired by [Fabulous](https://github.com/gcollazo/Fabulous) but has some significant differences as well.
-
-The goal of Flabric is to make setting up a Flask app and deploying it to EC2 a trivial task. Something being 'trivial' is very subject, but this project can immediately be deployed by cloning the project, configuring an rcfile, and running a fabric task.
 
 ### Getting Started
-Clone the project and install the requirments using pip (hopefully you use pip)
+Install Flabric:
 
-    $ git clone git@github.com:mattupstate/flabric.git
-    $ cd flabric
-    $ mkvirtualenv flabric
-    $ pip install -r requirements.txt
+    $ pip install https://github.com/mattupstate/flabric/tarball/develop
 
-Copy `rcfile.sample` and name it `rcfile.development` (or staging, or production). Then edit the following values in `rcfile.development`:
+Configure an rcfile with the following values (for EC2):
 
-    ec2_key # Your EC2 account key
-    ec2_secret # Your EC2 account secret
-    ec2_keypair # A keypair name you've created under your account
-    ec2_secgroups # A comma separated list of security groups
+    user = ubuntu
+    key_filename = /path/to/keyfile
+    #host_string = to be added later
 
-Save the file and then run:
+    server_provider = ec2
+    server_type = flabric.ubuntu.nginx_uwsgi_supervisor
 
-    $ fab -c rcfile.development create_server
+    ec2_key = your_ec2_key
+    ec2_secret = your_ec2_secret
+    ec2_ami = ami-fd589594
+    ec2_keypair = keypair_name
+    ec2_secgroups = security_group_name
+    ec2_instancetype = t1.micro
 
-If you're rcfile is configured correctly you can now sit back and relax while Fabric creates an Ubuntu EC2 instance and installs:
+Add the following to your fabfile:
 
-* [nginx](http://wiki.nginx.org/)
-* [uWSGI](http://projects.unbit.it/uwsgi/)
-* [memcached](http://memcached.org/)
-* [pip](http://www.pip-installer.org/)
-* [virtualenv](http://www.virtualenv.org/)
-* [virtualenvwrapper](http://www.doughellmann.com/projects/virtualenvwrapper/)
-* [uwsgi-manager](https://github.com/mattupstate/uWSGI-Manager)
-* [git](http://git-scm.com/)
-    
-It will then deploy the application to the server immediately. Once this is complete, you'll want to edit `rcfile.development` again and set the following values:
+    import flabric
 
-    key_filename # Path to keypair.pem
-    host_string # The host name of the instance that was launched
+    def create_server():
+        flabric.create_server()
 
-Now you're ready to deploy a new version after you commit some code to the git repository. To redeploy run:
+    def setup_server():
+        flabric.setup_server()
 
-    $ fab -c rcfile.development deploy
+Create the server:
 
-Explore the fabfile for more tasks that allow you to manage nginx and the uwsgi process manager
+    $ fab -c rcfile create_server
+
+If something doesn't go right during server setup, such as a network error you can try it again by running:
+
+    $ fab -c rcfile setup_server
+
+After the server is finished being created you'll want to uncomment and modify the `host_string` value in your rcfile to perform any more operations on your new server.
