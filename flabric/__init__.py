@@ -76,7 +76,6 @@ def create_server():
     env.host_string = provider.create_instance()
     print(green("Waiting 30 seconds for server to boot..."))
     time.sleep(30)
-    setup_server()
     end_time = time.time()
     print(green('*' * 100))
     print(green("Server created in %f minutes!" % ((end_time - start_time) / 60)))
@@ -132,3 +131,4 @@ def upload_app():
 def upload_config():
     """upload configuration"""
     _get_server().upload_config(_get_app_context())
+

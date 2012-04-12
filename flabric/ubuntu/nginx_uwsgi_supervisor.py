@@ -16,13 +16,13 @@ class Server(UbuntuServer):
         with mode_sudo():
             group_ensure('admin')
 
-            for u in [('ubuntu', '/home/ubuntu'),('supervisor', None)]:
+            for u in [('ubuntu', '/home/ubuntu')]:
                 puts(green('Ensuring user: ' + u[0]))
                 user_ensure(u[0], home=u[1])
 
             group_user_ensure('admin', 'ubuntu')
 
-            print(green("Updating /etc/sudoers"))
+            puts(green("Updating /etc/sudoers"))
             file_update(
                 '/etc/sudoers', 
                 lambda _: text_ensure_line(_,
@@ -30,7 +30,7 @@ class Server(UbuntuServer):
                     'ubuntu  ALL=(ALL) NOPASSWD:ALL'
             ))
 
-            print(green("Adding your public key to ubuntu user"))
+            puts(green("Adding your public key to ubuntu user"))
             ssh_authorize('ubuntu', file_local_read('~/.ssh/id_rsa.pub'))
 
             puts(green('Updating repository info for nginx'))
@@ -99,7 +99,8 @@ class Server(UbuntuServer):
             run('chmod +x /etc/init.d/supervisor')
             run('update-rc.d supervisor defaults')
 
-        self.restart()
+            run('/etc/init.d/supervisor start')
+        
         puts(green('Server setup complete!'))
         puts(green('Add sites to nginx by linking configuration files in /etc/nginx/sites-enabled.'))
         puts(green('Add uWSGI processes to supervisor by linking configuration files in /etc/supervisor/apps-enabled.'))
@@ -125,9 +126,9 @@ class Server(UbuntuServer):
 
             tdir = os.path.dirname(__file__)
             
-            for f in ['bashrc', 'profile']:
+            for f in ['bashrc', 'bash_profile', 'profile']:
                 lfn = os.path.join(tdir, 'templates', '%s.tmpl' % f)
-                contents = file_local_read(lfn)
+                contents = file_local_read(lfn) % ctx.__dict__
                 rfn = '/home/%s/.%s' % (ctx.user, f)
                 file_ensure(rfn, owner=ctx.user, group=ctx.user)
                 file_update(rfn, lambda _:contents)
@@ -170,7 +171,11 @@ class Server(UbuntuServer):
             for c in [('/etc/nginx/conf.d', 'nginx'), 
                       ('/etc/supervisor', 'supervisor')]:
                 source = '%s/%s.conf' % (ctx.etc_dir, c[1])
-                destination = '%s/%s' % (c[0], ctx.name)
+                destination = '%s/%s.conf' % (c[0], ctx.name)
+
+                if file_exists(destination) and (not file_is_link(destination)):
+                    run('rm ' + destination)
+                
                 file_link(source, destination)
 
 
@@ -188,7 +193,8 @@ class ApplicationContext(AppContext):
 
     @property
     def required_dirs(self):
-        return [self.root_dir, self.releases_dir, self.src_dir, self.etc_dir, self.log_dir, self.run_dir]
+        return [self.root_dir, self.releases_dir, self.src_dir, 
+                self.etc_dir, self.log_dir, self.run_dir]
 
     def pre_upload(self):
         pass
