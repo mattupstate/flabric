@@ -3,9 +3,8 @@ from cuisine import *
 from fabric.api import env
 from fabric.colors import *
 from fabric.utils import puts
-from fabric.contrib.console import confirm
 from fabric.context_managers import cd, settings
-from flabric import ApplicationContext as AppContext, render
+from flabric import ApplicationContext as AppContext
 from flabric.ubuntu import UbuntuServer
 import os, flabric
 
@@ -18,7 +17,7 @@ class Server(UbuntuServer):
             group_ensure('admin')
 
             for u in [('ubuntu', '/home/ubuntu'),('supervisor', None)]:
-                puts(green('Ensuring user: %s' % u[0]))
+                puts(green('Ensuring user: ' + u[0]))
                 user_ensure(u[0], home=u[1])
 
             group_user_ensure('admin', 'ubuntu')
@@ -62,7 +61,7 @@ class Server(UbuntuServer):
                       'mysql-client', 
                       'git-core', 
                       'nginx']:
-                puts(green('Installing: %s' % p))
+                puts(green('Installing: ' + p))
                 package_ensure(p)
             
             puts(green('Linking libraries'))
@@ -78,8 +77,8 @@ class Server(UbuntuServer):
                       'virtualenvwrapper',
                       'supervisor',
                       'uwsgi']:
-                puts(green('Installing: %s' % p))
-                run('pip install %s' % p)
+                puts(green('Installing: ' + p))
+                run('pip install ' + p)
             
             puts(green('Configuring supervisor and nginx'))
             
@@ -92,15 +91,10 @@ class Server(UbuntuServer):
                 if not file_exists(fn):
                     file_write(fn, contents)
                 else:
-                    if confirm('The file %s already exists. '
-                               'Do you want to overwrite it?' % fn):
-                        file_update(fn, lambda _:contents)
+                    file_update(fn, lambda _:contents)
 
             puts(green('Create supervisor config folder'))
             dir_ensure('/etc/supervisor')
-
-            puts(green('Remove default nginx site'))
-            run('rm /etc/nginx/conf.d/*')
 
             run('chmod +x /etc/init.d/supervisor')
             run('update-rc.d supervisor defaults')
@@ -126,34 +120,56 @@ class Server(UbuntuServer):
             sudo('/etc/init.d/%s stop' % c)
 
     def create_app_context(self, ctx):
-        with settings(user=ctx.user or env.user):
-            puts(green('Creating app context under user: %s' % env.user))
+        with settings(user=ctx.user):
+            puts(green('Creating app context under user: ' + env.user))
             
             dot_profile = '/home/%s/.profile' % ctx.user
-            file_ensure(dot_profile)
+            file_ensure(dot_profile, owner=ctx.user, group=ctx.user)
             file_update(
                 dot_profile, 
                 lambda _: text_ensure_line(_,
-                    'WORKON_HOME=~/.virtualenv',
+                    'WORKON_HOME=/home/%s/.virtualenv' % ctx.user,
                     'source /usr/local/bin/virtualenvwrapper.sh'
             ))
+
+            dir_ensure('/home/%s/sites' % ctx.user)
 
             for d in ctx.required_dirs:
                 dir_ensure(d)
 
-            run('mkvirtualenv %s' % ctx.name)
+            run('mkvirtualenv ' + ctx.name)
 
     def upload_app(self, ctx):
-        ctx.upload()
+        with settings(user=ctx.user):
+            env.remote_bundle = '/tmp/' + os.path.basename(env.local_bundle)
+            
+            file_upload(env.remote_bundle, env.local_bundle)
+            
+            run('rm -rf ' + ctx.src_dir)
+            dir_ensure(ctx.src_dir)
+            
+            with cd(ctx.src_dir):
+                run('tar -xvf ' + env.remote_bundle)
 
     def upload_config(self, ctx):
-        with mode_sudo():
-            for c in [(env.nginx_tmpl,'/etc/nginx/conf.d/%s'), 
-                      (env.supervisor_tmpl, '/etc/supervisor/%s')]:
-                fn = c[1] % ctx.name
+        with settings(user=ctx.user):
+            for c in [(env.nginx_template,'nginx'), 
+                      (env.supervisor_template, 'supervisor')]:
+                
+                fn = '%s/%s.conf' % (ctx.etc_dir, c[1])
+                contents = file_local_read(c[0]) % ctx.__dict__
+                
                 if file_exists(fn):
-                    run('rm %s' % fn)
-                file_write(fn, file_local_read(c[0]) % ctx.__dict__)
+                    file_update(fn, lambda _:contents)
+                else:
+                    file_write(fn, contents)
+
+        with mode_sudo():
+            for c in [('/etc/nginx/conf.d', 'nginx'), 
+                      ('/etc/supervisor', 'supervisor')]:
+                source = '%s/%s.conf' % (ctx.etc_dir, c[1])
+                destination = '%s/%s' % (c[0], ctx.name)
+                file_link(source, destination)
 
 
 class ApplicationContext(AppContext):
@@ -161,23 +177,13 @@ class ApplicationContext(AppContext):
     def __init__(self, name='default', user='ubuntu'):
         super(ApplicationContext, self).__init__(name, user)
         self.virtualenv = '/home/%s/.virtualenv/%s' % (self.user, self.name)
-        self.root_dir = '/home/%s/%s' % (self.user, self.name)
-        self.src_dir = '%s/src' % self.root_dir
-        self.log_dir = '%s/log' % self.root_dir
-        self.run_dir = '%s/run' % self.root_dir
+        self.root_dir = '/home/%s/sites/%s' % (self.user, self.name)
+        self.releases_dir = self.root_dir + '/releases'
+        self.src_dir = self.releases_dir + '/current'
+        self.etc_dir = self.root_dir + '/etc'
+        self.log_dir = self.root_dir + '/log'
+        self.run_dir = self.root_dir + '/run'
 
     @property
     def required_dirs(self):
-        return [self.root_dir, self.src_dir, self.log_dir, self.run_dir]
-
-    def upload(self):
-        with settings(user=self.user or env.user):
-            env.remote_bundle = os.path.join('/tmp', os.path.basename(env.local_bundle))
-            
-            file_upload(env.remote_bundle, env.local_bundle)
-            
-            run('rm -rf %s' % self.src_dir)
-            dir_ensure(self.src_dir)
-            
-            with cd(self.src_dir):
-                run(render('tar -xvf %(remote_bundle)s'))
+        return [self.root_dir, self.releases_dir, self.etc_dir, self.log_dir, self.run_dir]

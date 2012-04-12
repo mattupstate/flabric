@@ -1,5 +1,6 @@
 from __future__ import with_statement
-import time, types
+import time, types, tempfile
+from cuisine import *
 from fabric.api import *
 from fabric.colors import *
 
@@ -83,6 +84,16 @@ def create_server():
     print(green(env.host_string))
     print(green('*' * 100))
 
+class app_bundle(object):
+
+    def __enter__(self):
+        env.local_bundle = tempfile.mkstemp(suffix='.tar')[1]
+        run_local(render('git archive --format=tar %(git_branch)s > %(local_bundle)s'))
+
+    def __exit__(self, *args, **kwargs):
+        os.unlink(env.local_bundle)
+        env.local_bundle = None
+
 def setup_server():
     """Setup the sever"""
     _get_server().setup()
@@ -110,11 +121,13 @@ def create_app_context():
 def deploy():
     upload_app()
     upload_config()
+    #tag_deployment()
     restart_server()
 
 def upload_app():
     """upload_app"""
-    _get_server().upload_app(_get_app_context())
+    with app_bundle():
+        _get_server().upload_app(_get_app_context())
 
 def upload_config():
     """upload configuration"""

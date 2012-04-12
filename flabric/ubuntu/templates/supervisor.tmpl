@@ -19,11 +19,8 @@ stop)
         echo
         ;;
 restart)
-        echo -n "Stopping supervisord: "
-        $SUPERVISORCTL shutdown
-        echo
-        echo -n "Starting supervisord: "
-        $SUPERVISORD
+        echo -n "Restarting supervisord: "
+        $SUPERVISORCTL reload
         echo
         ;;
 esac
