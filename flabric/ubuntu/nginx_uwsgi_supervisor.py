@@ -192,10 +192,10 @@ class ApplicationContext(AppContext):
     def required_dirs(self):
         return [self.root_dir, self.releases_dir, self.src_dir, self.etc_dir, self.log_dir, self.run_dir]
 
-    def pre_upload():
+    def pre_upload(self):
         pass
         
-    def post_upload():
+    def post_upload(self):
         with settings(user=self.user):
             with cd(self.src_dir):
                 with prefix('workon ' + self.name):
