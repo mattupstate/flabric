@@ -122,22 +122,16 @@ class Server(UbuntuServer):
     def create_app_context(self, ctx):
         with settings(user=ctx.user):
             puts(green('Creating app context under user: ' + env.user))
+
+            bashrc = '/home/%s/.bashrc' + ctx.user
+            contents = file_local_read(os.path.join(tdir, 'templates', 'bashrc.tmpl'))
+            file_unsure(bashrc, owner=ctx.user, group=ctx.user)
+            file_update(bashrc, contents)
             
-            dot_profile = '/home/%s/.profile' % ctx.user
-            file_ensure(dot_profile, owner=ctx.user, group=ctx.user)
-            file_update(
-                dot_profile, 
-                lambda _: text_ensure_line(_,
-                    'WORKON_HOME=/home/%s/.virtualenv' % ctx.user,
-                    'source /usr/local/bin/virtualenvwrapper.sh'
-            ))
-
             dir_ensure('/home/%s/sites' % ctx.user)
-
+            
             for d in ctx.required_dirs:
                 dir_ensure(d)
-
-            run('mkvirtualenv ' + ctx.name)
 
     def upload_app(self, ctx):
         ctx.pre_upload()
@@ -194,8 +188,10 @@ class ApplicationContext(AppContext):
 
     def pre_upload(self):
         pass
-        
+
     def post_upload(self):
+        run('rmvirtualenv ' + self.name)
+        run('mkvirtualenv ' + self.name)
         with settings(user=self.user):
             with cd(self.src_dir):
                 with prefix('workon ' + self.name):
