@@ -3,7 +3,7 @@ from cuisine import *
 from fabric.api import env
 from fabric.colors import *
 from fabric.utils import puts
-from fabric.context_managers import cd, settings
+from fabric.context_managers import cd, settings, prefix
 from flabric import ApplicationContext as AppContext
 from flabric.ubuntu import UbuntuServer
 import os, flabric
@@ -140,6 +140,8 @@ class Server(UbuntuServer):
             run('mkvirtualenv ' + ctx.name)
 
     def upload_app(self, ctx):
+        ctx.pre_upload()
+
         with settings(user=ctx.user):
             env.remote_bundle = '/tmp/' + os.path.basename(env.local_bundle)
             
@@ -150,6 +152,8 @@ class Server(UbuntuServer):
             
             with cd(ctx.src_dir):
                 run('tar -xvf ' + env.remote_bundle)
+
+        ctx.post_upload()
 
     def upload_config(self, ctx):
         with settings(user=ctx.user):
@@ -186,4 +190,13 @@ class ApplicationContext(AppContext):
 
     @property
     def required_dirs(self):
-        return [self.root_dir, self.releases_dir, self.etc_dir, self.log_dir, self.run_dir]
+        return [self.root_dir, self.releases_dir, self.src_dir, self.etc_dir, self.log_dir, self.run_dir]
+
+    def pre_upload():
+        pass
+        
+    def post_upload():
+        with settings(user=self.user):
+            with cd(self.src_dir):
+                with prefix('workon ' + self.name):
+                    run('pip install -r requirements.txt')
