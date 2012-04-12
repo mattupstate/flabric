@@ -5,6 +5,7 @@ from fabric.colors import *
 
 
 class Server(object):
+    
     def reboot(self):
         raise NotImplementedError()
 
@@ -20,14 +21,12 @@ class Server(object):
     def stop(self):
         raise NotImplementedError()
 
+class ApplicationContext(object):
 
-class Application(object):
-    def bundle(self):
-        raise NotImplementedError()
+    def __init__(self, name, user=None):
+        self.name = name
+        self.user = user
 
-    def deploy(self):
-        raise NotImplementedError()
-        
     def restart(self):
         raise NotImplementedError()
 
@@ -36,7 +35,6 @@ class Application(object):
 
     def stop(self):
         raise NotImplementedError()
-
 
 def _getattr(objstr):
     parts = objstr.split('.')
@@ -48,6 +46,9 @@ def _getattr(objstr):
 
 def _get_server():
     return _getattr(env.server_type)()
+
+def _get_app_context():
+    return _getattr(env.server_appcontext)()
 
 def render(obj):
         """Convienently render strings with the fabric context"""
@@ -101,3 +102,20 @@ def start_server():
 def stop_server():
     """Stop the sever"""
     _get_server().stop()
+
+def create_app_context():
+    """Create an app context"""
+    _get_server().create_app_context(_get_app_context())
+
+def deploy():
+    upload_app()
+    upload_config()
+    restart_server()
+
+def upload_app():
+    """upload_app"""
+    _get_server().upload_app(_get_app_context())
+
+def upload_config():
+    """upload configuration"""
+    _get_server().upload_config(_get_app_context())
