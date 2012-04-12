@@ -123,10 +123,14 @@ class Server(UbuntuServer):
         with settings(user=ctx.user):
             puts(green('Creating app context under user: ' + env.user))
 
-            bashrc = '/home/%s/.bashrc' + ctx.user
-            contents = file_local_read(os.path.join(tdir, 'templates', 'bashrc.tmpl'))
-            file_unsure(bashrc, owner=ctx.user, group=ctx.user)
-            file_update(bashrc, contents)
+            tdir = os.path.dirname(__file__)
+            
+            for f in ['bashrc', 'profile']:
+                lfn = os.path.join(tdir, 'templates', '%s.tmpl' % f)
+                contents = file_local_read(lfn)
+                rfn = '/home/%s/.%s' % (ctx.user, f)
+                file_ensure(rfn, owner=ctx.user, group=ctx.user)
+                file_update(rfn, lambda _:contents)
             
             dir_ensure('/home/%s/sites' % ctx.user)
             

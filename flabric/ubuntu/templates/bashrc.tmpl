@@ -3,8 +3,11 @@
 # for examples
 
 export PIP_DOWNLOAD_CACHE=$HOME/.pipcache
-export WORKON_HOME=$HOME/.virtualenv
-source /usr/local/bin/virtualenvwrapper.sh
+
+if [ $USER == myuser ]; then
+    export WORKON_HOME=$HOME/.virtualenv
+    source /usr/local/bin/virtualenvwrapper.sh
+fi
 
 # If not running interactively, don't do anything
 [ -z "$PS1" ] && return
